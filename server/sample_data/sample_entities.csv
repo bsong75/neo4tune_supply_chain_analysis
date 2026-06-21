@@ -1,0 +1,37 @@
+entity_id,type,name,country,material,component,capacity,capacity_unit,tier,status
+MINE-01,Mine,Greenbushes Lithium,Australia,lithium,,750000,tons_yr,Tier 1 - Raw Mining,active
+MINE-02,Mine,Mutanda Cobalt Mine,DRC,cobalt,,25000,tons_yr,Tier 1 - Raw Mining,active
+MINE-03,Mine,Sulawesi Nickel Mine,Indonesia,nickel,,180000,tons_yr,Tier 1 - Raw Mining,active
+MINE-04,Mine,Heilongjiang Graphite,China,graphite,,300000,tons_yr,Tier 1 - Raw Mining,active
+MINE-05,Mine,Morro da Mina Manganese,Brazil,manganese,,120000,tons_yr,Tier 1 - Raw Mining,active
+MINE-06,Mine,Salar de Atacama,Chile,lithium,,850000,tons_yr,Tier 1 - Raw Mining,active
+REF-01,Refinery,Ganfeng Lithium Refinery,China,lithium,,100000,tons_yr,Tier 2 - Refining,active
+REF-02,Refinery,Umicore Cobalt Refinery,Belgium,cobalt,,7000,tons_yr,Tier 2 - Refining,active
+REF-03,Refinery,Sumitomo Nickel Refinery,Japan,nickel,,50000,tons_yr,Tier 2 - Refining,active
+REF-04,Refinery,Shanshan Graphite Processing,China,graphite,,80000,tons_yr,Tier 2 - Refining,active
+REF-05,Refinery,Terrafame Nickel-Cobalt,Finland,nickel,,30000,tons_yr,Tier 2 - Refining,active
+COMP-01,ComponentMfg,BASF Cathode Materials,Germany,,cathode,50000,units_yr,Tier 3 - Components,active
+COMP-02,ComponentMfg,Umicore Cathode Works,South Korea,,cathode,40000,units_yr,Tier 3 - Components,active
+COMP-03,ComponentMfg,BTR New Materials,China,,anode,80000,units_yr,Tier 3 - Components,active
+COMP-04,ComponentMfg,Shenzhen Capchem,China,,electrolyte,60000,units_yr,Tier 3 - Components,active
+COMP-05,ComponentMfg,Asahi Kasei Separator,Japan,,separator,90000,units_yr,Tier 3 - Components,active
+COMP-06,ComponentMfg,Shanghai Energy New Materials,China,,separator,45000,units_yr,Tier 3 - Components,active
+COMP-07,ComponentMfg,Posco Chemical Cathode,South Korea,,cathode,35000,units_yr,Tier 3 - Components,active
+COMP-08,ComponentMfg,Mitsubishi Chemical Electrolyte,Japan,,electrolyte,30000,units_yr,Tier 3 - Components,active
+CELL-01,CellMfg,CATL,China,,,300,GWh,Tier 4 - Cell Manufacturing,active
+CELL-02,CellMfg,LG Energy Solution,South Korea,,,200,GWh,Tier 4 - Cell Manufacturing,active
+CELL-03,CellMfg,Samsung SDI,South Korea,,,80,GWh,Tier 4 - Cell Manufacturing,active
+CELL-04,CellMfg,Panasonic Energy,Japan,,,60,GWh,Tier 4 - Cell Manufacturing,active
+CELL-05,CellMfg,BYD Battery,China,,,150,GWh,Tier 4 - Cell Manufacturing,active
+CELL-06,CellMfg,SK On,South Korea,,,40,GWh,Tier 4 - Cell Manufacturing,active
+CELL-07,CellMfg,AESC,Japan,,,30,GWh,Tier 4 - Cell Manufacturing,active
+CELL-08,CellMfg,CALB,China,,,50,GWh,Tier 4 - Cell Manufacturing,active
+PACK-01,PackAssembly,Tesla Gigafactory Nevada,United States,,,100,GWh,Tier 5 - Pack Assembly,active
+PACK-02,PackAssembly,BMW Battery Assembly Munich,Germany,,,40,GWh,Tier 5 - Pack Assembly,active
+PACK-03,PackAssembly,VW Salzgitter Battery Plant,Germany,,,60,GWh,Tier 5 - Pack Assembly,active
+PACK-04,PackAssembly,Hyundai Battery Plant Georgia,United States,,,30,GWh,Tier 5 - Pack Assembly,active
+PACK-05,PackAssembly,BYD Pack Assembly Shenzhen,China,,,80,GWh,Tier 5 - Pack Assembly,active
+OEM-01,OEM,Tesla,United States,,,,vehicles,Tier 6 - OEM,active
+OEM-02,OEM,BMW,Germany,,,,vehicles,Tier 6 - OEM,active
+OEM-03,OEM,Volkswagen,Germany,,,,vehicles,Tier 6 - OEM,active
+OEM-04,OEM,Hyundai,South Korea,,,,vehicles,Tier 6 - OEM,active
