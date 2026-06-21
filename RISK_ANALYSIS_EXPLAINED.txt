@@ -1,0 +1,196 @@
+================================================================================
+  EV BATTERY SUPPLY CHAIN - RISK ANALYSIS EXPLAINED
+================================================================================
+
+OVERVIEW
+--------
+The risk analysis identifies which entities in the EV battery supply chain
+are the most critical -- meaning their disruption would cause the greatest
+damage to the overall supply network. It runs in three phases, then combines
+the results into a single risk score per entity.
+
+
+================================================================================
+PHASE 1: GRAPH METRICS
+================================================================================
+
+Purpose: Measure how connected and structurally important each node is.
+
+Two metrics are computed:
+
+1. DEGREE CENTRALITY
+   - Counts how many direct supply relationships a node has (both inbound
+     and outbound).
+   - Normalized by dividing by the maximum degree in the graph.
+   - Formula: degree_centrality = node_connections / max_connections
+   - A node connected to many others scores higher.
+   - Example: If CATL (cell manufacturer) has 12 connections and the most-
+     connected node has 14, CATL's degree centrality = 12/14 = 0.857.
+
+2. BETWEENNESS CENTRALITY
+   - Measures how often a node sits on the shortest path between other nodes.
+   - Uses Brandes' algorithm (time complexity O(V*E) where V = nodes,
+     E = edges).
+   - A node with high betweenness is a critical intermediary -- many supply
+     chains pass through it.
+   - Normalized so values fall between 0 and 1.
+   - Example: If Umicore (cobalt refinery) is the only path between cobalt
+     mines and cathode manufacturers, it will have very high betweenness
+     because ALL shortest paths between those tiers pass through it.
+
+How Brandes' Algorithm Works:
+   For each node S in the graph:
+   1. Run BFS from S to find shortest paths to all other nodes
+   2. Track the number of shortest paths (sigma) and predecessors
+   3. Accumulate dependency scores by backtracking from leaves to S
+   4. Sum these dependencies across all source nodes S
+   This avoids the naive O(V^3) approach of computing all-pairs shortest paths.
+
+
+================================================================================
+PHASE 2: ARTICULATION POINT DETECTION
+================================================================================
+
+Purpose: Find nodes whose removal would disconnect the supply graph.
+
+Uses Tarjan's algorithm (time complexity O(V+E)):
+
+1. Performs a Depth-First Search (DFS) traversal of the graph
+2. Assigns each node two values:
+   - Discovery time: when the node was first visited
+   - Low-link value: the earliest discovery time reachable from the
+     node's subtree
+3. A node U is an articulation point if:
+   - U is the DFS root AND has 2+ children in the DFS tree, OR
+   - U is not the root AND has a child V where low[V] >= disc[U]
+     (meaning V's subtree cannot reach any ancestor of U without
+     going through U)
+
+What this means in supply chain terms:
+   An articulation point is a single point of failure. If you remove it,
+   at least one part of the supply chain becomes completely disconnected
+   from the rest. For example, if Asahi Kasei (separator manufacturer)
+   is the sole separator supplier, removing it splits the graph -- cell
+   manufacturers downstream can no longer reach separator supply.
+
+Articulation points are flagged with is_articulation_point = true and
+displayed with a red diamond marker above the node in the UI.
+
+
+================================================================================
+PHASE 3: CASCADE DISRUPTION SIMULATION
+================================================================================
+
+Purpose: Quantify the actual downstream impact of each node's failure.
+
+For each node in the graph:
+1. Temporarily remove the node from the graph
+2. Pick an entry point (the OEM with the highest degree, representing
+   the demand side of the supply chain)
+3. Run BFS from that entry point across the remaining graph
+4. Count how many nodes are unreachable (disconnected from the OEM)
+5. That count is the node's cascade impact score
+
+Example:
+   Remove BTR New Materials (anode manufacturer):
+   - BFS from Tesla (OEM entry point)
+   - 6 cell manufacturers can no longer reach anode supply
+   - cascade_impact = 6
+
+   Remove a mine that has alternative supply paths:
+   - BFS from Tesla
+   - All nodes are still reachable via other mines
+   - cascade_impact = 0
+
+The cascade impact is normalized by dividing by the maximum cascade impact
+found across all nodes, so values fall between 0 and 1 for scoring.
+
+
+================================================================================
+FINAL RISK SCORE CALCULATION
+================================================================================
+
+The four metrics are combined into a weighted score:
+
+   risk_score = 0.25 * degree_centrality
+              + 0.30 * betweenness_centrality
+              + 0.20 * articulation_point_flag (1.0 if AP, 0.0 if not)
+              + 0.25 * cascade_impact_normalized
+
+Weight rationale:
+   - Betweenness centrality (30%): Highest weight because nodes that
+     bridge many paths are the most structurally critical.
+   - Degree centrality (25%): Highly connected nodes affect many partners.
+   - Cascade impact (25%): Direct measure of downstream disruption.
+   - Articulation point (20%): Binary flag for graph-disconnecting nodes.
+
+The score ranges from 0.0 (minimal risk) to 1.0 (maximum risk).
+
+
+================================================================================
+RISK ZONE CLUSTERING
+================================================================================
+
+After scoring, nodes above the critical threshold (default 0.5) are grouped
+into Risk Zones:
+
+1. Build a subgraph containing only critical nodes (score >= threshold)
+2. Find edges between critical nodes (adjacency in the original graph)
+3. Run BFS to find connected components in this critical-only subgraph
+4. Each connected component with 2+ members becomes a RiskZone
+
+Each RiskZone stores:
+   - zone_id: identifier (e.g., "rz_1")
+   - risk_score: maximum risk score among members
+   - member_count: number of critical nodes in the zone
+   - failure_impact: total cascade impact of all members combined
+
+CRITICAL_PATH edges are created between adjacent critical nodes to
+visualize the high-risk pathways. IDENTIFIED_IN edges link each member
+to its RiskZone node.
+
+Why this matters:
+   A cluster of adjacent high-risk nodes represents a concentrated area
+   of vulnerability. If one node in the zone fails, the stress on
+   neighboring critical nodes increases, creating a cascade risk that
+   is greater than any single node failure.
+
+
+================================================================================
+EXAMPLE: SAMPLE DATASET ANALYSIS
+================================================================================
+
+The built-in sample dataset has 36 entities and 57 supply links. Running
+analysis typically reveals:
+
+High-risk nodes (score > 0.5):
+   - COMP-05 (Asahi Kasei, separator):  Supplies 7 of 8 cell makers.
+     High degree, high betweenness, articulation point, high cascade.
+   - COMP-03 (BTR New Materials, anode): Supplies 6 of 8 cell makers.
+     Similar profile to COMP-05.
+   - REF-02 (Umicore, cobalt refinery): Sole cobalt refiner. Articulation
+     point with significant cascade impact on downstream cathode production.
+
+Geographic risk:
+   - Multiple refineries and component manufacturers are concentrated
+     in China, creating geographic concentration risk that this analysis
+     captures through the interconnected high betweenness scores.
+
+These patterns demonstrate how the algorithm surfaces both structural
+vulnerabilities (single points of failure) and systemic risks (clusters
+of interdependent critical nodes).
+
+
+================================================================================
+CONFIGURABLE PARAMETERS
+================================================================================
+
+critical_threshold (default: 0.5)
+   - Controls which nodes are classified as "high-risk"
+   - Lower values (e.g., 0.2) flag more nodes as critical (sensitive)
+   - Higher values (e.g., 0.9) flag only the most extreme risks (strict)
+   - Adjustable via the Analysis tab slider in the right panel
+
+The weight distribution (25/30/20/25) is hardcoded in the algorithm.
+To change it, modify the risk calculation in supply_chain_analyzer.py
+in the run_analysis function (around line 250).
